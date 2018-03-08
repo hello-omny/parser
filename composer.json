@@ -1,0 +1,21 @@
+{
+    "name": "omny/parser",
+    "description": "Php parser",
+    "type": "extension",
+    "license": "BSD-2-Clause",
+    "authors": [
+        {
+            "name": "hello.omny",
+            "email": "hello.omny@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+        "omny/curl": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "omny\\parser\\": ""
+        }
+    }
+}
