@@ -3,7 +3,9 @@
 namespace omny\parser\loader;
 
 
-class LoaderBaseOptions
+use omny\parser\base\BaseOptions;
+
+class LoaderBaseOptions extends BaseOptions
 {
     public $proxyEnabled = false;
     public $cacheEnabled = true;

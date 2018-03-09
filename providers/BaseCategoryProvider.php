@@ -3,7 +3,7 @@
 namespace omny\parser\providers;
 
 
-use omny\parser\BaseComponent;
+use omny\parser\base\BaseComponent;
 
 class BaseCategoryProvider extends BaseComponent implements ProviderInterface
 {

@@ -3,12 +3,17 @@
 namespace omny\parser\saver;
 
 
+use omny\parser\Article;
 use omny\parser\Worker;
 
 class BaseSaver extends Worker
 {
-    public function save($article)
+    /**
+     * @param $article Article
+     * @throws \Exception
+     */
+    public function save(Article $article)
     {
-        throw new \ErrorException('No method code. ' . __METHOD__);
+        throw new \Exception('No method code. ' . __METHOD__);
     }
 }

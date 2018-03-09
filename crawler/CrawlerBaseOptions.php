@@ -3,7 +3,7 @@
 namespace omny\parser\crawler;
 
 
-use omny\parser\BaseOptions;
+use omny\parser\base\BaseOptions;
 
 class CrawlerBaseOptions extends BaseOptions
 {

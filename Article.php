@@ -3,6 +3,8 @@
 namespace omny\parser;
 
 
+use omny\parser\base\BaseEntity;
+
 class Article extends BaseEntity
 {
     public $title;

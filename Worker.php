@@ -3,6 +3,8 @@
 namespace omny\parser;
 
 
+use omny\parser\base\BaseComponent;
+
 class Worker extends BaseComponent
 {
     protected $options;
