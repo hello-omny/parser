@@ -5,7 +5,7 @@ namespace omny\parser\crawler;
 
 use omny\parser\base\BaseOptions;
 
-class CrawlerBaseOptions extends BaseOptions
+class BaseCrawlerOptions extends BaseOptions
 {
     //страница категорий
     /** @var string|null */
@@ -41,7 +41,5 @@ class CrawlerBaseOptions extends BaseOptions
     /** @var null|string Класс с контейнера даты статьи */
     public $contentDateClass = null;
 
-    public function __construct() {
 
-    }
 }

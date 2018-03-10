@@ -19,4 +19,9 @@ class Article extends BaseEntity
     public $url;
 
     public $parser_hash;
+
+    public function load($data)
+    {
+        parent::load($data);
+    }
 }

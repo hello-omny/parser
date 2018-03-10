@@ -14,7 +14,7 @@ use omny\parser\Worker;
  */
 class BaseCrawler extends Worker
 {
-    /** @var  CrawlerBaseOptions */
+    /** @var  BaseCrawlerOptions */
     public $options;
 
     /**
@@ -22,29 +22,32 @@ class BaseCrawler extends Worker
      * @param $class
      * @param $nodeEntity
      * @return array
+     * @throws \Exception
      */
     public function getNodeList($html, $class, $nodeEntity)
     {
-        $collectedNodesList = [];
+        $collectedNodeList = [];
         $htmlObject = $this->createAdvancedHtmlDomFromHtml($html);
         $nodeList = $htmlObject->find($class);
 
-        foreach ($nodeList as $nodeObject) {
-
-            if (!is_null($nodeObject)) {
-                $node = new $nodeEntity();
-                $node->load([
-                    'url' => trim($nodeObject->href),
-                    'title' => trim($nodeObject->plaintext),
-                ]);
-
-                $collectedNodesList[] = $node;
-            } else {
-                echo "BaseCrawler::getNodeList (" . $nodeEntity . ") —> No link found. \n";
+        if (!empty($nodeList)) {
+            foreach ($nodeList as $nodeObject) {
+                if (!is_null($nodeObject)) {
+                    /** @var Article $node */
+                    $node = new $nodeEntity();
+                    $node->load([
+                        'url' => trim($nodeObject->href),
+                        'title' => trim($nodeObject->plaintext),
+                    ]);
+                    $collectedNodeList[] = $node;
+                } else {
+                    echo "BaseCrawler::getNodeList (" . $nodeEntity . ") —> No link found. \n";
+                }
             }
+            return $collectedNodeList;
         }
 
-        return $collectedNodesList;
+        throw new \Exception('Node list empty!');
     }
 
     /**
@@ -69,7 +72,7 @@ class BaseCrawler extends Worker
      * @param $html
      * @return array|bool
      */
-    public function getData($html)
+    public function getDataFromHtml($html)
     {
         $htmlObject = $this->createAdvancedHtmlDomFromHtml($html);
         $content = $htmlObject->find($this->options->contentContainer, 0);
@@ -109,7 +112,7 @@ class BaseCrawler extends Worker
         if (!is_null($this->options->contentPreviewClass)) {
             $contentImage = $content->find($this->options->contentPreviewClass, 0);
             if (!is_null($contentImage)) {
-                return $contentImage->find('img', 0);
+                return $contentImage->src;
             }
         }
 

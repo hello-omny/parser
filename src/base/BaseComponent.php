@@ -3,14 +3,21 @@
 namespace omny\parser\base;
 
 
-class BaseEntity extends BaseComponent
+class BaseComponent
 {
-    public $url;
-    public $title;
-
-    public function load($params)
+    public function __construct($params = [])
     {
-        $this->setAttributes($params);
+        $this->init($params);
+    }
+
+    public function init($params)
+    {
+
+    }
+
+    public static function getClassName()
+    {
+        return get_called_class();
     }
 
     public function setAttributes($params)

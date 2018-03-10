@@ -9,13 +9,14 @@
             "email": "hello.omny@gmail.com"
         }
     ],
+    "minimum-stability": "dev", 
     "require": {
         "php": ">=5.5.0",
         "omny/curl": "*"
     },
     "autoload": {
         "psr-4": {
-            "omny\\parser\\": ""
+            "omny\\parser\\": "src/"
         }
     }
 }

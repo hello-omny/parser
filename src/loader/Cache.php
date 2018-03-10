@@ -1,15 +1,15 @@
 <?php
 
-namespace omny\parser\cache;
+namespace omny\parser\loader;
 
 
-use omny\parser\Worker;
+use omny\parser\base\BaseComponent;
 
 /**
  * Class Cache
  * @package omny\parser\cache
  */
-class Cache extends Worker
+class Cache extends BaseComponent
 {
     /**
      * @var
@@ -21,13 +21,15 @@ class Cache extends Worker
     public $alias = '/runtime/parser/cache';
 
     /**
+     * @param $params
      * @throws \Exception
      */
-    public function init()
+    public function init($params)
     {
-        parent::init();
-
+        $this->setAttributes($params);
         $this->setDirAlias();
+
+        parent::init($params);
     }
 
     /**
