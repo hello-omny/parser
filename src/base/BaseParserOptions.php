@@ -1,6 +1,17 @@
 <?php
 
 namespace omny\parser\base;
+use omny\parser\cleaner\BaseCleaner;
+use omny\parser\cleaner\BaseCleanerOptions;
+use omny\parser\crawler\BaseCrawler;
+use omny\parser\crawler\BaseCrawlerOptions;
+use omny\parser\handlers\ArticleHandler;
+use omny\parser\loader\BaseLoader;
+use omny\parser\loader\BaseLoaderOptions;
+use omny\parser\providers\BaseArticleProvider;
+use omny\parser\providers\BaseCategoryProvider;
+use omny\parser\saver\BaseSaver;
+use omny\parser\saver\BaseSaverOptions;
 
 
 /**
@@ -19,47 +30,43 @@ class BaseParserOptions extends BaseOptions
      * @var int
      */
     public $pagesToParse = 3;
-
-    /**
-     * @var array
-     */
+    /** @var array  */
+    public $handlers = [];
+    /** @var array  */
+    private $defaultHandlers = [
+        'article' => ArticleHandler::class,
+    ];
+    /** @var array */
     public $workers = [];
-    /**
-     * @var array
-     */
+    /** @var array */
     private $defaultWorkers = [
         'loader' => [
-            'className' => 'omny\parser\loader\BaseLoader',
-            'optionClass' => 'omny\parser\loader\BaseLoaderOptions',
+            'className' => BaseLoader::class,
+            'optionClass' => BaseLoaderOptions::class,
         ],
         'crawler' => [
-            'className' => 'omny\parser\crawler\BaseCrawler',
-            'optionClass' => 'omny\parser\crawler\BaseCrawlerOptions',
+            'className' => BaseCrawler::class,
+            'optionClass' => BaseCrawlerOptions::class,
         ],
         'saver' => [
-            'className' => 'omny\parser\saver\BaseSaver',
-            'optionClass' => 'omny\parser\saver\BaseSaverOptions',
+            'className' => BaseSaver::class,
+            'optionClass' => BaseSaverOptions::class,
         ],
         'cleaner' => [
-            'className' => 'omny\parser\cleaner\BaseCleaner',
-            'optionClass' => 'omny\parser\cleaner\BaseCleanerOptions',
+            'className' => BaseCleaner::class,
+            'optionClass' => BaseCleanerOptions::class,
         ],
     ];
-
-    /**
-     * @var array
-     */
+    /** @var array */
     public $providers = [];
-    /**
-     * @var array
-     */
+    /** @var array */
     private $defaultProviders = [
         'article' => [
-            'className' => 'omny\parser\providers\BaseArticleProvider',
+            'className' => BaseArticleProvider::class,
             'params' => [],
         ],
         'category' => [
-            'className' => 'omny\parser\providers\BaseCategoryProvider',
+            'className' => BaseCategoryProvider::class,
             'params' => [],
         ],
     ];
@@ -71,24 +78,13 @@ class BaseParserOptions extends BaseOptions
     {
         parent::init($params);
 
-        $this->workers = $this->mergeWorkers();
-        $this->providers = $this->mergeProviders();
+        $this->workers = $this->mergeOptions($this->defaultWorkers, $this->workers);
+        $this->providers = $this->mergeOptions($this->defaultProviders, $this->providers);
+        $this->handlers = $this->mergeOptions($this->defaultHandlers, $this->handlers);
     }
 
-    /**
-     * @return array
-     */
-    private function mergeWorkers()
+    private function mergeOptions($default, $option)
     {
-        return array_merge($this->defaultWorkers, $this->workers);
+        return array_merge($default, $option);
     }
-
-    /**
-     * @return array
-     */
-    private function mergeProviders()
-    {
-        return array_merge($this->defaultProviders, $this->providers);
-    }
-
 }

@@ -28,6 +28,7 @@ class ParserSetup
         if ($this->validateOptions()) {
             $this->setUpWorkers();
             $this->setUpProviders();
+            $this->setHandlers();
         } else {
             throw new \Exception('Validation of parser options fail.');
         }
@@ -39,6 +40,15 @@ class ParserSetup
     public function validateOptions()
     {
         return true;
+    }
+
+    private function setHandlers()
+    {
+        $handlers = $this->options->handlers;
+
+        foreach ($handlers as $name => $className) {
+            $this->parser->setHandler($name, $className);
+        }
     }
 
     /**

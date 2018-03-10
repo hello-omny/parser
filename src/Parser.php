@@ -4,11 +4,9 @@ namespace omny\parser;
 
 use omny\parser\base\BaseEntity;
 use omny\parser\base\BaseParserOptions;
-use omny\parser\cleaner\BaseCleaner;
 use omny\parser\crawler\BaseCrawler;
 use omny\parser\handlers\ArticleHandler;
 use omny\parser\loader\BaseLoader;
-use omny\parser\providers\BaseArticleProvider;
 use omny\parser\providers\ProviderInterface;
 
 /**
@@ -17,24 +15,20 @@ use omny\parser\providers\ProviderInterface;
  */
 class Parser
 {
-    /**
-     * @var
-     */
+    /** @var string */
     protected $baseUrl;
     /**
      * @var
      */
     protected $parserName;
-
     /** @var bool */
     public $testMode = true;
-
     /** @var BaseParserOptions */
     public $options;
-
+    /** @var array */
+    protected $handlers = [];
     /** @var Worker[] */
-    private $worker = [];
-
+    protected $workers = [];
     /** @var ProviderInterface[] */
     protected $providers = [];
 
@@ -53,10 +47,13 @@ class Parser
     public function init()
     {
         new ParserSetup($this, $this->options);
+
+        var_dump($this);
+        die;
     }
 
     /**
-     * @param null $url
+     * @param null|string $url
      */
     public function work($url = null)
     {
@@ -69,14 +66,14 @@ class Parser
             $url = null;
 
             if ($this->canParseNextPage($pageCounter)) {
-                $url = $this->getWorker('loader')->getNextPage();
+                $url = $this->getWorkers('loader')->getNextPage();
                 $pageCounter++;
             }
         }
     }
 
     /**
-     * @param null $url
+     * @param null|string $url
      * @return mixed
      */
     public function getCategoryList($url = null)
@@ -84,46 +81,45 @@ class Parser
         if (empty($url)) {
             $url = $this->options->startUrl;
         }
-        $page = $this->getWorker('loader')->getContent($url);
+        $page = $this->getWorkers('loader')->getContent($url);
 
-        $categoryList = $this->getWorker('crawler')->getCategoryList($page);
+        $categoryList = $this->getWorkers('crawler')->getCategoryList($page);
         $categoryList = $this->formatNodeUrls($categoryList);
 
         return $categoryList;
     }
 
     /**
-     * @param $url
+     * @param string $url
+     * @return array
      */
-    public function handlePageOfArticles($url)
+    public function handlePageOfArticles(string $url)
     {
         /** @var BaseLoader $loader */
-        $loader = $this->getWorker('loader');
+        $loader = $this->getWorkers('loader');
         /** @var BaseCrawler $crawler */
-        $crawler = $this->getWorker('crawler');
-
+        $crawler = $this->getWorkers('crawler');
         $page = $loader->getContent($url);
 
         if ($this->testMode) {
             echo "Parser::handlePageOfArticles -> url: " . $url . " \n";
         }
 
-        // массив объектов типа Article
         $articleList = $crawler->getArticleList($page);
         $articleList = $this->formatNodeUrls($articleList);
-
         $savedArticles = [];
+        $articleHandler = $this->getHandler('article');
 
         /** @var Article $article */
         foreach ($articleList as $article) {
-            $handler = new ArticleHandler([
+            $handler = new $articleHandler([
                 'article' => $article,
                 'article_hash' => $this->createArticleHash($article->url),
                 'category_id' => $this->getArticleCategoryId(),
                 'articleProvider' => $this->getProvider('article'),
-                'loader' => $this->getWorker('loader'),
-                'crawler' => $this->getWorker('crawler'),
-                'cleaner' => $this->getWorker('cleaner'),
+                'loader' => $this->getWorkers('loader'),
+                'crawler' => $this->getWorkers('crawler'),
+                'cleaner' => $this->getWorkers('cleaner'),
             ]);
             if ($handler->run()) {
                 $savedArticles[] = $article;
@@ -134,10 +130,10 @@ class Parser
     }
 
     /**
-     * @param $list
-     * @return mixed
+     * @param array $list
+     * @return array
      */
-    private function formatNodeUrls($list)
+    private function formatNodeUrls(array $list)
     {
         /** @var BaseEntity $node */
         foreach ($list as $node) {
@@ -148,10 +144,10 @@ class Parser
     }
 
     /**
-     * @param $counter
+     * @param int $counter
      * @return bool
      */
-    protected function canParseNextPage($counter)
+    protected function canParseNextPage(int $counter)
     {
         return $counter < $this->options->pagesToParse;
     }
@@ -160,52 +156,70 @@ class Parser
      * @param $url
      * @return string
      */
-    protected function normalizeUrl($url)
+    protected function normalizeUrl(string $url)
     {
         Helper::normalizeUrl($url, $this->baseUrl);
     }
 
     /**
-     * @param $name
-     * @param $object
+     * @param string $name
+     * @return mixed|ArticleHandler
      */
-    public function setWorker($name, $object)
+    public function getHandler(string $name)
     {
-        $this->worker[$name] = $object;
+        return $this->handlers[$name];
     }
 
     /**
-     * @param $name
+     * @param $name string
+     * @param $object string
+     */
+    public function setHandler(string $name, string $object)
+    {
+        $this->handlers[$name] = $object;
+    }
+
+    /**
+     * @param string $name
+     * @param Worker $object
+     */
+    public function setWorker(string $name, Worker $object)
+    {
+        $this->workers[$name] = $object;
+    }
+
+    /**
+     * @param string $name
      * @return Worker
      */
-    public function getWorker($name)
+    public function getWorkers(string $name)
     {
-        return $this->worker[$name];
+        return $this->workers[$name];
     }
 
     /**
-     * @param $name
-     * @param $object
+     * @param string $name
+     * @param ProviderInterface $object
      */
-    public function setProvider($name, $object)
+    public function setProvider(string $name, ProviderInterface $object)
     {
         $this->providers[$name] = $object;
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @return ProviderInterface
      */
-    public function getProvider($name)
+    public function getProvider(string $name)
     {
         return $this->providers[$name];
     }
 
     /**
-     * @param $url
+     * @param string $url
      * @return string
      */
-    private function createArticleHash($url)
+    private function createArticleHash(string $url)
     {
         $source = md5($url) . "_" . $this->parserName;
 
@@ -213,8 +227,7 @@ class Parser
     }
 
     /**
-     * @param $article
-     * @return mixed
+     * @return int
      */
     private function getArticleCategoryId()
     {
