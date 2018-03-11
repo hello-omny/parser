@@ -13,7 +13,7 @@ use omny\parser\providers\BaseArticleProvider;
  * Class ArticleHandler
  * @package omny\parser\handlers
  */
-class ArticleHandler
+class ArticleHandler implements HandlerInterface
 {
     /** @var Article */
     private $article;

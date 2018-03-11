@@ -3,6 +3,7 @@
 namespace omny\parser;
 
 
+use omny\parser\base\BaseParser;
 use omny\parser\base\BaseParserOptions;
 
 /**
@@ -20,7 +21,7 @@ class ParserSetup
      * @param BaseParserOptions $options
      * @throws \Exception
      */
-    public function __construct(Parser $parser, BaseParserOptions $options)
+    public function __construct(BaseParser $parser, BaseParserOptions $options)
     {
         $this->parser = $parser;
         $this->options = $options;
