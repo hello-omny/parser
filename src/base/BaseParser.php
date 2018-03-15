@@ -3,10 +3,10 @@
 namespace omny\parser\base;
 
 
+use omny\parser\handlers\HandlerInterface;
 use omny\parser\ParserInterface;
 use omny\parser\ParserSetup;
 use omny\parser\providers\ProviderInterface;
-use omny\parser\Worker;
 
 /**
  * Class BaseParser
@@ -19,15 +19,12 @@ class BaseParser implements ParserInterface
     /** @var string */
     public $baseUrl;
 
-    /** @var bool */
-    public $testMode = true;
-
     /** @var */
     public $parserName;
     /** @var array */
     protected $handlers = [];
-    /** @var Worker[] */
-    protected $workers = [];
+    /** @var Component[] */
+    protected $components = [];
     /** @var ProviderInterface[] */
     protected $providers = [];
 
@@ -48,7 +45,7 @@ class BaseParser implements ParserInterface
     /**
      * @param null|string $url
      */
-    public function work($url = null)
+    public function run($url = null)
     {
 
     }
@@ -57,36 +54,36 @@ class BaseParser implements ParserInterface
      * @param string $name
      * @return string
      */
-    public function getHandler(string $name): string
+    public function getHandler(string $name): HandlerInterface
     {
         return $this->handlers[$name];
     }
 
     /**
-     * @param $name string
-     * @param $object string
+     * @param string $name
+     * @param HandlerInterface $object
      */
-    public function setHandler(string $name, string $object)
+    public function setHandler(string $name, HandlerInterface $object)
     {
         $this->handlers[$name] = $object;
     }
 
     /**
      * @param string $name
-     * @param Worker $object
+     * @param Component $object
      */
-    public function setWorker(string $name, Worker $object)
+    public function setComponent(string $name, Component $object)
     {
-        $this->workers[$name] = $object;
+        $this->components[$name] = $object;
     }
 
     /**
      * @param string $name
-     * @return Worker
+     * @return Component
      */
-    public function getWorkers(string $name): Worker
+    public function getComponent(string $name): Component
     {
-        return $this->workers[$name];
+        return $this->components[$name];
     }
 
     /**

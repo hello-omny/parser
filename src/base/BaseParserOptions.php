@@ -1,6 +1,7 @@
 <?php
 
 namespace omny\parser\base;
+
 use omny\parser\cleaner\BaseCleaner;
 use omny\parser\cleaner\BaseCleanerOptions;
 use omny\parser\crawler\BaseCrawler;
@@ -30,31 +31,34 @@ class BaseParserOptions extends BaseOptions
      * @var int
      */
     public $pagesToParse = 3;
-    /** @var array  */
+    /** @var array */
     public $handlers = [];
-    /** @var array  */
+    /** @var array */
     private $defaultHandlers = [
-        'article' => ArticleHandler::class,
+        'article' => [
+            'className' => ArticleHandler::class,
+            'config' => [],
+        ],
     ];
     /** @var array */
-    public $workers = [];
+    public $components = [];
     /** @var array */
-    private $defaultWorkers = [
+    private $defaultComponents = [
         'loader' => [
             'className' => BaseLoader::class,
-            'optionClass' => BaseLoaderOptions::class,
+            'config' => BaseLoaderOptions::class,
         ],
         'crawler' => [
             'className' => BaseCrawler::class,
-            'optionClass' => BaseCrawlerOptions::class,
+            'config' => BaseCrawlerOptions::class,
         ],
         'saver' => [
             'className' => BaseSaver::class,
-            'optionClass' => BaseSaverOptions::class,
+            'config' => BaseSaverOptions::class,
         ],
         'cleaner' => [
             'className' => BaseCleaner::class,
-            'optionClass' => BaseCleanerOptions::class,
+            'config' => BaseCleanerOptions::class,
         ],
     ];
     /** @var array */
@@ -63,11 +67,11 @@ class BaseParserOptions extends BaseOptions
     private $defaultProviders = [
         'article' => [
             'className' => BaseArticleProvider::class,
-            'params' => [],
+            'config' => [],
         ],
         'category' => [
             'className' => BaseCategoryProvider::class,
-            'params' => [],
+            'config' => [],
         ],
     ];
 
@@ -78,13 +82,47 @@ class BaseParserOptions extends BaseOptions
     {
         parent::init($params);
 
-        $this->workers = $this->mergeOptions($this->defaultWorkers, $this->workers);
+        $this->components = $this->mergeOptions($this->defaultComponents, $this->components);
         $this->providers = $this->mergeOptions($this->defaultProviders, $this->providers);
         $this->handlers = $this->mergeOptions($this->defaultHandlers, $this->handlers);
     }
 
-    private function mergeOptions($default, $option)
+    /**
+     * @return array
+     */
+    public function getDefaultComponents()
     {
-        return array_merge($default, $option);
+        return $this->defaultComponents;
+    }
+
+    /**
+     * @param $name
+     * @return mixed|null
+     */
+    public function getDefaultComponent($name)
+    {
+        if (isset($this->defaultComponents[$name])) {
+            return $this->defaultComponents[$name];
+        }
+
+        return null;
+    }
+
+    protected function mergeOptions($default, $option)
+    {
+        $result = [];
+        foreach ($default as $name => $config) {
+            $result[$name] = $config;
+            if (isset($option[$name])) {
+                if (isset($option[$name]['className'])) {
+                    $result[$name]['className'] = $option[$name]['className'];
+                }
+                if (isset($option[$name]['config'])) {
+                    $result[$name]['config'] = $option[$name]['config'];
+                }
+            }
+        }
+
+        return $result;
     }
 }

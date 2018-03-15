@@ -5,6 +5,7 @@ namespace omny\parser;
 use omny\parser\base\BaseEntity;
 use omny\parser\base\BaseParser;
 use omny\parser\crawler\BaseCrawler;
+use omny\parser\handlers\ArticleHandler;
 use omny\parser\loader\BaseLoader;
 
 /**
@@ -16,7 +17,7 @@ class Parser extends BaseParser
     /**
      * @param null|string $url
      */
-    public function work($url = null)
+    public function run($url = null)
     {
         if (empty($url)) {
             $url = $this->options->startUrl;
@@ -27,7 +28,7 @@ class Parser extends BaseParser
             $url = null;
 
             if ($this->canParseNextPage($pageCounter)) {
-                $url = $this->getWorkers('loader')->getNextPage();
+                $url = $this->getComponent('loader')->getNextPage();
                 $pageCounter++;
             }
         }
@@ -42,9 +43,9 @@ class Parser extends BaseParser
         if (empty($url)) {
             $url = $this->options->startUrl;
         }
-        $page = $this->getWorkers('loader')->getContent($url);
+        $page = $this->getComponent('loader')->getContent($url);
 
-        $categoryList = $this->getWorkers('crawler')->getCategoryList($page);
+        $categoryList = $this->getComponent('crawler')->getCategoryList($page);
         $categoryList = $this->formatNodeUrls($categoryList);
 
         return $categoryList;
@@ -57,9 +58,9 @@ class Parser extends BaseParser
     public function handlePageOfArticles(string $url)
     {
         /** @var BaseLoader $loader */
-        $loader = $this->getWorkers('loader');
+        $loader = $this->getComponent('loader');
         /** @var BaseCrawler $crawler */
-        $crawler = $this->getWorkers('crawler');
+        $crawler = $this->getComponent('crawler');
         $page = $loader->getContent($url);
 
         if ($this->testMode) {
@@ -73,14 +74,16 @@ class Parser extends BaseParser
 
         /** @var Article $article */
         foreach ($articleList as $article) {
-            $handler = new $articleHandler([
+            /** @var ArticleHandler $handler */
+            $handler = new $articleHandler();
+            $handler->load([
                 'article' => $article,
                 'article_hash' => $this->createArticleHash($article->url),
                 'category_id' => $this->getArticleCategoryId(),
                 'articleProvider' => $this->getProvider('article'),
-                'loader' => $this->getWorkers('loader'),
-                'crawler' => $this->getWorkers('crawler'),
-                'cleaner' => $this->getWorkers('cleaner'),
+                'loader' => $this->getComponent('loader'),
+                'crawler' => $this->getComponent('crawler'),
+                'cleaner' => $this->getComponent('cleaner'),
             ]);
             if ($handler->run()) {
                 $savedArticles[] = $article;

@@ -12,7 +12,9 @@ use omny\parser\base\BaseParserOptions;
  */
 class ParserSetup
 {
+    /** @var BaseParser|Parser */
     private $parser;
+    /** @var BaseParserOptions */
     private $options;
 
     /**
@@ -27,9 +29,9 @@ class ParserSetup
         $this->options = $options;
 
         if ($this->validateOptions()) {
-            $this->setUpWorkers();
-            $this->setUpProviders();
-            $this->setHandlers();
+            $this->setUpComponents($this->options->components);
+            $this->setUpProviders($this->options->providers);
+            $this->setHandlers($this->options->handlers);
         } else {
             throw new \Exception('Validation of parser options fail.');
         }
@@ -43,48 +45,38 @@ class ParserSetup
         return true;
     }
 
-    private function setHandlers()
+    /**
+     * @param $handlers
+     * @throws \Exception
+     */
+    private function setHandlers(array $handlers)
     {
-        $handlers = $this->options->handlers;
-
-        foreach ($handlers as $name => $className) {
-            $this->parser->setHandler($name, $className);
+        foreach ($handlers as $name => $config) {
+            $object = $this->createObject($config['className'], $config['config']);
+            $this->parser->setHandler($name, $object);
         }
     }
 
     /**
+     * @param array $components
      * @throws \Exception
      */
-    private function setUpWorkers()
+    private function setUpComponents(array $components)
     {
-        $workers = $this->options->workers;
-        echo $this->parser->testMode ? "" : " > Parser::setUpWorkers \n";
-
-        foreach ($workers as $name => $config) {
-            $className = $config['className'];
-            $options = $config['optionClass'];
-
-            echo $this->parser->testMode ? "" : " > Worker: " . $className . " \n";
-            echo $this->parser->testMode ? "" : " > Options: " . $options . " \n";
-            $object = $this->createObject($className, $options);
-
-            $this->parser->setWorker($name, $object);
+        foreach ($components as $name => $config) {
+            $object = $this->createObject($config['className'], $config['config']);
+            $this->parser->setComponent($name, $object);
         }
     }
 
     /**
+     * @param array $providers
      * @throws \Exception
      */
-    private function setUpProviders()
+    private function setUpProviders(array $providers)
     {
-        $providers = $this->options->providers;
-
         foreach ($providers as $name => $config) {
-            // TODO: validate parameters
-            $className = $config['className'];
-            $params = $config['params'];
-            $provider = $this->createObject($className, $params);
-
+            $provider = $this->createObject($config['className'], $config['config']);
             $this->parser->setProvider($name, $provider);
         }
     }
