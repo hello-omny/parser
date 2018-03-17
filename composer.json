@@ -13,7 +13,7 @@
     "require": {
         "php": ">=7.0",
         "omny/curl": "*",
-        "symfony/filesystem": "3.4.x-dev"
+        "symfony/filesystem": "^3.4"
     },
     "autoload": {
         "psr-4": {
