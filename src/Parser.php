@@ -118,6 +118,13 @@ class Parser extends BaseParser
             $article->short = $this->getComponent('cleaner')->clean($article->short);
         }
 
+        $article = $this->loadExtendedDataToArticle($article);
+
+        return $article;
+    }
+
+    protected function loadExtendedDataToArticle($article)
+    {
         return $article;
     }
 
