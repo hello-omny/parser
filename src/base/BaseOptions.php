@@ -4,7 +4,7 @@ namespace omny\parser\base;
 
 class BaseOptions
 {
-    public $handlers = [];
+    protected $handlers = [];
 
     public function __construct(array $options = [])
     {
@@ -14,6 +14,16 @@ class BaseOptions
     public function init($option)
     {
 
+    }
+
+    public function getHandler($name)
+    {
+        return isset($this->handlers[$name]) ? $this->handlers[$name] : null;
+    }
+
+    public function getHandlers()
+    {
+        return $this->handlers;
     }
 
     protected function mergeOptions($default, $option)

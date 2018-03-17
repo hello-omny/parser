@@ -29,9 +29,9 @@ class ParserSetup
         $this->options = $options;
 
         if ($this->validateOptions()) {
-            $this->setUpComponents($this->options->components);
-            $this->setUpProviders($this->options->providers);
-            $this->setHandlers($this->options->handlers);
+            $this->setUpComponents($this->options->getComponents());
+            $this->setUpProviders($this->options->getProviders());
+            $this->setHandlers($this->options->getHandlers());
         } else {
             throw new \Exception('Validation of parser options fail.');
         }

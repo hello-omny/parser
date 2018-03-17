@@ -23,7 +23,7 @@ class Component extends BaseComponent implements ComponentInterface
     public function init($params)
     {
         $this->loadOptions($params);
-        static::setHandlers($this->options->handlers);
+        static::setHandlers($this->options->getHandlers());
 
         parent::init($params);
     }
@@ -69,7 +69,7 @@ class Component extends BaseComponent implements ComponentInterface
 
     public function hasHandler(string $name): bool
     {
-        return isset($this->handlers[$name]);
+        return (bool) !is_null($this->getHandler($name));
     }
 
 }

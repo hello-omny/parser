@@ -6,6 +6,8 @@ use omny\parser\cleaner\BaseCleaner;
 use omny\parser\cleaner\BaseCleanerOptions;
 use omny\parser\crawler\BaseCrawler;
 use omny\parser\crawler\BaseCrawlerOptions;
+use omny\parser\entities\Article;
+use omny\parser\entities\Category;
 use omny\parser\handlers\ArticleHandler;
 use omny\parser\loader\BaseLoader;
 use omny\parser\loader\BaseLoaderOptions;
@@ -32,7 +34,7 @@ class BaseParserOptions extends BaseOptions
      */
     public $pagesToParse = 3;
     /** @var array */
-    public $handlers = [];
+    protected $handlers = [];
     /** @var array */
     private $defaultHandlers = [
         'article' => [
@@ -41,7 +43,7 @@ class BaseParserOptions extends BaseOptions
         ],
     ];
     /** @var array */
-    public $components = [];
+    protected $components = [];
     /** @var array */
     private $defaultComponents = [
         'loader' => [
@@ -62,7 +64,7 @@ class BaseParserOptions extends BaseOptions
         ],
     ];
     /** @var array */
-    public $providers = [];
+    protected $providers = [];
     /** @var array */
     private $defaultProviders = [
         'article' => [
@@ -73,6 +75,17 @@ class BaseParserOptions extends BaseOptions
             'className' => BaseCategoryProvider::class,
             'config' => [],
         ],
+    ];
+    /** @var array */
+    protected $entities = [];
+    /** @var array */
+    private $defaultEntities = [
+        'article' => [
+            'className' => Article::class,
+        ],
+        'category' => [
+            'className' => Category::class,
+        ]
     ];
 
     /**
@@ -85,6 +98,7 @@ class BaseParserOptions extends BaseOptions
         $this->components = $this->mergeOptions($this->defaultComponents, $this->components);
         $this->providers = $this->mergeOptions($this->defaultProviders, $this->providers);
         $this->handlers = $this->mergeOptions($this->defaultHandlers, $this->handlers);
+        $this->entities = $this->mergeOptions($this->defaultEntities, $this->entities);
     }
 
     /**
@@ -101,13 +115,23 @@ class BaseParserOptions extends BaseOptions
      */
     public function getDefaultComponent($name)
     {
-        if (isset($this->defaultComponents[$name])) {
-            return $this->defaultComponents[$name];
-        }
-
-        return null;
+        return isset($this->defaultComponents[$name]) ? $this->defaultComponents[$name] : null;
     }
 
+    /**
+     * @param $name
+     * @return mixed|null
+     */
+    public function getEntity($name)
+    {
+        return isset($this->entities[$name]) ? $this->entities[$name] : null;
+    }
+
+    /**
+     * @param $default
+     * @param $option
+     * @return array
+     */
     protected function mergeOptions($default, $option)
     {
         $result = [];
@@ -125,4 +149,15 @@ class BaseParserOptions extends BaseOptions
 
         return $result;
     }
+
+    public function getComponents()
+    {
+        return $this->components;
+    }
+
+    public function getProviders()
+    {
+        return $this->providers;
+    }
+
 }

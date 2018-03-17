@@ -27,37 +27,9 @@ class BaseCrawler extends Component
         $this->html = $this->createAdvancedHtmlDomFromHtml($page);
     }
 
-    /**
-     * @param $html
-     * @param $class
-     * @param $nodeEntity
-     * @return array
-     * @throws \Exception
-     */
-    public function getNodeList($html, $class, $nodeEntity)
+    public function getElementByClass($className, $index = null)
     {
-        $collectedNodeList = [];
-        $htmlObject = $this->createAdvancedHtmlDomFromHtml($html);
-        $nodeList = $htmlObject->find($class);
-
-        if (!empty($nodeList)) {
-            foreach ($nodeList as $nodeObject) {
-                if (!is_null($nodeObject)) {
-                    /** @var Article $node */
-                    $node = new $nodeEntity();
-                    $node->load([
-                        'url' => trim($nodeObject->href),
-                        'title' => trim($nodeObject->plaintext),
-                    ]);
-                    $collectedNodeList[] = $node;
-                } else {
-                    echo "BaseCrawler::getNodeList (" . $nodeEntity . ") —> No link found. \n";
-                }
-            }
-            return $collectedNodeList;
-        }
-
-        throw new \Exception('Node list empty!');
+        return $this->html->find($className, $index);
     }
 
     /**
@@ -85,7 +57,7 @@ class BaseCrawler extends Component
     public function getNextPage()
     {
         if (!empty($this->options->paginationNextClass)) {
-            $link = $this->html->find($this->options->paginationNextClass, 0);
+            $link = $this->getElementByClass($this->options->paginationNextClass, 0);
 
             return empty($link) ? null : $link->href;
         }
@@ -114,6 +86,39 @@ class BaseCrawler extends Component
             'preview' => $this->getContentImage($content),
             'date' => $this->getContentDate($htmlObject),
         ];
+    }
+
+    /**
+     * @param $html
+     * @param $class
+     * @param $nodeEntity
+     * @return array
+     * @throws \Exception
+     */
+    protected function getNodeList($html, $class, $nodeEntity)
+    {
+        $collectedNodeList = [];
+        $htmlObject = $this->createAdvancedHtmlDomFromHtml($html);
+        $nodeList = $htmlObject->find($class);
+
+        if (!empty($nodeList)) {
+            foreach ($nodeList as $nodeObject) {
+                if (!is_null($nodeObject)) {
+                    /** @var Article $node */
+                    $node = new $nodeEntity();
+                    $node->load([
+                        'url' => trim($nodeObject->href),
+                        'title' => trim($nodeObject->plaintext),
+                    ]);
+                    $collectedNodeList[] = $node;
+                } else {
+                    echo "BaseCrawler::getNodeList (" . $nodeEntity . ") —> No link found. \n";
+                }
+            }
+            return $collectedNodeList;
+        }
+
+        throw new \Exception('Node list empty!');
     }
 
     /**
@@ -147,7 +152,7 @@ class BaseCrawler extends Component
      * @param $html AdvancedHtmlDom
      * @return null|string
      */
-    private function getContentBody($html)
+    protected function getContentBody($html)
     {
         if (!is_null($this->options->contentBodyClass)) {
             $contentBody = $html->find($this->options->contentBodyClass);
@@ -162,7 +167,7 @@ class BaseCrawler extends Component
      * @param $html AdvancedHtmlDom
      * @return null|string
      */
-    private function getContentShort($html)
+    protected function getContentShort($html)
     {
         if (!is_null($this->options->contentShortClass)) {
             $contentDescription = $html->find($this->options->contentShortClass, 0);
@@ -177,12 +182,12 @@ class BaseCrawler extends Component
      * @param $html AdvancedHtmlDom
      * @return null|string
      */
-    private function getContentDate($html)
+    protected function getContentDate($html)
     {
         if (!empty($this->options->contentDateClass)) {
-            $date = $html->find($this->options->contentDateClass, 0)->innertext;
+            $date = $html->find($this->options->contentDateClass, 0);
 
-            return is_null($date) ? null : strtotime($date);
+            return is_null($date) ? null : strtotime($date->innertext);
         }
 
         return null;
