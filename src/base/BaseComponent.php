@@ -49,7 +49,7 @@ class BaseComponent
         $names = [];
         foreach ($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
             if (!$property->isStatic()) {
-                $names[$property->getName()] = $property->getValue();
+                $names[$property->getName()] = $property->getValue($this);
             }
         }
 
