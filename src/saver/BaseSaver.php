@@ -28,8 +28,6 @@ class BaseSaver extends Component
         if ($this->hasHandler('save')) {
             /** @var SaveHandler $saveHandler */
             $saveHandler = $this->getHandler('save');
-//            var_dump($saveHandler);
-//            die;
             $saveHandler->load([
                 'url' => $file,
                 'storage' => 'media',

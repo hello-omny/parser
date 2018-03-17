@@ -63,11 +63,8 @@ class ParserSetup
      */
     private function setUpComponents(array $components)
     {
-
         foreach ($components as $name => $config) {
             try {
-                var_dump($config['className']);
-                var_dump($config['config']);
                 $object = $this->createObject($config['className'], $config['config']);
                 $this->parser->setComponent($name, $object);
             } catch (\Exception $exception) {
@@ -75,7 +72,6 @@ class ParserSetup
                 var_dump($exception->getMessage());
             }
         }
-        die;
     }
 
     /**

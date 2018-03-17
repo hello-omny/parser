@@ -34,10 +34,9 @@ class Parser extends BaseParser
         while (!empty($url)) {
             $page = $loader->getContent($url);
             $crawler->loadHtml($page);
-            list($articleList, $savedArticles) = $this->handlePageOfArticles();
-            var_dump($articleList);
-            $url = null;
+            $this->handlePageOfArticles();
 
+            $url = null;
             if ($this->canParseNextPage($pageCounter)) {
                 $url = $crawler->getNextPage();
                 $pageCounter++;
@@ -110,8 +109,6 @@ class Parser extends BaseParser
         $article->category_id = $this->getArticleCategoryId();
 
         if (!empty($article->preview)) {
-            var_dump($saver);
-            die;
             $article->preview = $saver->savePreview($article->preview);
         }
         if (!empty($article->body)) {
