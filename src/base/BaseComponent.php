@@ -31,7 +31,7 @@ class BaseComponent
      */
     public function setAttributes(array $params)
     {
-        $attributes = $this->attributes();
+        $attributes = array_keys($this->attributes());
 
         foreach ($params as $key => $value) {
             if (in_array($key, $attributes)) {
@@ -49,7 +49,7 @@ class BaseComponent
         $names = [];
         foreach ($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
             if (!$property->isStatic()) {
-                $names[] = $property->getName();
+                $names[$property->getName()] = $property->getValue();
             }
         }
 
