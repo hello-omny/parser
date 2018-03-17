@@ -11,6 +11,6 @@ interface ParserInterface
     /**
      * @param null|string $url
      */
-    public function work($url = null);
+    public function run($url = null);
 
 }

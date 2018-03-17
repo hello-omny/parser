@@ -7,6 +7,14 @@ use omny\parser\base\BaseOptions;
 
 class BaseCrawlerOptions extends BaseOptions
 {
+    // TODO:
+    // $category = [
+    //      'container' => '.className',
+    //      'link' => '.className',
+    // ]
+    // $entity = [];
+    // $page = [];
+    // $content = [];
     //страница категорий
     /** @var string|null */
     public $categoryContainerClass = null;
@@ -40,6 +48,5 @@ class BaseCrawlerOptions extends BaseOptions
     public $contentAuthorClass = null;
     /** @var null|string Класс с контейнера даты статьи */
     public $contentDateClass = null;
-
 
 }

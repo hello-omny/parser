@@ -5,8 +5,10 @@ namespace omny\parser;
 use omny\parser\base\BaseEntity;
 use omny\parser\base\BaseParser;
 use omny\parser\crawler\BaseCrawler;
+use omny\parser\entities\Article;
 use omny\parser\handlers\ArticleHandler;
 use omny\parser\loader\BaseLoader;
+use omny\parser\saver\BaseSaver;
 
 /**
  * Class Parser
@@ -15,7 +17,8 @@ use omny\parser\loader\BaseLoader;
 class Parser extends BaseParser
 {
     /**
-     * @param null|string $url
+     * @param null $url
+     * @throws \Exception
      */
     public function run($url = null)
     {
@@ -23,12 +26,20 @@ class Parser extends BaseParser
             $url = $this->options->startUrl;
         }
         $pageCounter = 1;
+        /** @var BaseLoader $loader */
+        $loader = $this->getComponent('loader');
+        /** @var BaseCrawler $crawler */
+        $crawler = $this->getComponent('crawler');
+
         while (!empty($url)) {
-            $this->handlePageOfArticles($url);
+            $page = $loader->getContent($url);
+            $crawler->loadHtml($page);
+            list($articleList, $savedArticles) = $this->handlePageOfArticles();
+            var_dump($articleList);
             $url = null;
 
             if ($this->canParseNextPage($pageCounter)) {
-                $url = $this->getComponent('loader')->getNextPage();
+                $url = $crawler->getNextPage();
                 $pageCounter++;
             }
         }
@@ -52,22 +63,15 @@ class Parser extends BaseParser
     }
 
     /**
-     * @param string $url
      * @return array
+     * @throws \Exception
      */
-    public function handlePageOfArticles(string $url)
+    public function handlePageOfArticles()
     {
-        /** @var BaseLoader $loader */
-        $loader = $this->getComponent('loader');
         /** @var BaseCrawler $crawler */
         $crawler = $this->getComponent('crawler');
-        $page = $loader->getContent($url);
 
-        if ($this->testMode) {
-            echo "Parser::handlePageOfArticles -> url: " . $url . " \n";
-        }
-
-        $articleList = $crawler->getArticleList($page);
+        $articleList = $crawler->getArticleList();
         $articleList = $this->formatNodeUrls($articleList);
         $savedArticles = [];
         $articleHandler = $this->getHandler('article');
@@ -77,13 +81,8 @@ class Parser extends BaseParser
             /** @var ArticleHandler $handler */
             $handler = new $articleHandler();
             $handler->load([
-                'article' => $article,
-                'article_hash' => $this->createArticleHash($article->url),
-                'category_id' => $this->getArticleCategoryId(),
+                'article' => $this->getArticleDataFromHtml($article),
                 'articleProvider' => $this->getProvider('article'),
-                'loader' => $this->getComponent('loader'),
-                'crawler' => $this->getComponent('crawler'),
-                'cleaner' => $this->getComponent('cleaner'),
             ]);
             if ($handler->run()) {
                 $savedArticles[] = $article;
@@ -91,6 +90,38 @@ class Parser extends BaseParser
         }
 
         return [$articleList, $savedArticles];
+    }
+
+    /**
+     * @param Article $article
+     * @return Article
+     * @throws \Exception
+     */
+    private function getArticleDataFromHtml(Article $article)
+    {
+        /** @var BaseSaver $saver */
+        $saver = $this->getComponent('saver');
+
+        $articleHtml = $this->getComponent('loader')->getContent($article->url);
+        $data = $this->getComponent('crawler')->getDataFromHtml($articleHtml);
+
+        $article->load($data);
+        $article->parser_hash = $this->createArticleHash($article->url);
+        $article->category_id = $this->getArticleCategoryId();
+
+        if (!empty($article->preview)) {
+            var_dump($saver);
+            die;
+            $article->preview = $saver->savePreview($article->preview);
+        }
+        if (!empty($article->body)) {
+            $article->body = $this->getComponent('cleaner')->clean($article->body);
+        }
+        if (!empty($article->short)) {
+            $article->short = $this->getComponent('cleaner')->clean($article->short);
+        }
+
+        return $article;
     }
 
     /**

@@ -12,7 +12,8 @@
     "minimum-stability": "dev", 
     "require": {
         "php": ">=7.0",
-        "omny/curl": "*"
+        "omny/curl": "*",
+        "symfony/filesystem": "3.4.x-dev"
     },
     "autoload": {
         "psr-4": {

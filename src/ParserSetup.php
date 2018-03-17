@@ -63,10 +63,19 @@ class ParserSetup
      */
     private function setUpComponents(array $components)
     {
+
         foreach ($components as $name => $config) {
-            $object = $this->createObject($config['className'], $config['config']);
-            $this->parser->setComponent($name, $object);
+            try {
+                var_dump($config['className']);
+                var_dump($config['config']);
+                $object = $this->createObject($config['className'], $config['config']);
+                $this->parser->setComponent($name, $object);
+            } catch (\Exception $exception) {
+                var_dump(sprintf("Can't create component %s with config %s.", $config['className'], $config['config']));
+                var_dump($exception->getMessage());
+            }
         }
+        die;
     }
 
     /**

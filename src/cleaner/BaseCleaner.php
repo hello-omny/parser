@@ -3,13 +3,13 @@
 namespace omny\parser\cleaner;
 
 
-use omny\parser\Worker;
+use omny\parser\base\Component;
 
 /**
  * Class BaseCleaner
  * @package omny\parser\cleaner
  */
-class BaseCleaner extends Worker
+class BaseCleaner extends Component
 {
     /**
      * @param $html

@@ -3,10 +3,11 @@
 namespace omny\parser\saver;
 
 
-use omny\parser\Article;
-use omny\parser\Worker;
+use omny\parser\entities\Article;
+use omny\parser\handlers\SaveHandler;
+use omny\parser\base\Component;
 
-class BaseSaver extends Worker
+class BaseSaver extends Component
 {
     /**
      * @param $article Article
@@ -14,6 +15,32 @@ class BaseSaver extends Worker
      */
     public function save(Article $article)
     {
-        throw new \Exception('No method code. ' . __METHOD__);
+        throw new \Exception('No code in ' . __METHOD__);
+    }
+
+    /**
+     * @param $file
+     * @return bool|string
+     * @throws \Exception
+     */
+    public function savePreview($file)
+    {
+        if ($this->hasHandler('save')) {
+            /** @var SaveHandler $saveHandler */
+            $saveHandler = $this->getHandler('save');
+//            var_dump($saveHandler);
+//            die;
+            $saveHandler->load([
+                'url' => $file,
+                'storage' => 'media',
+                'name' => null,
+            ]);
+            if ($fileName = $saveHandler->run()) {
+                return $fileName;
+            }
+            return $file;
+        }
+
+        return $file;
     }
 }

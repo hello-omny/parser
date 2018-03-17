@@ -10,8 +10,19 @@ namespace omny\parser\handlers;
 interface HandlerInterface
 {
     /**
-     * @return bool|mixed
+     * @param array $params
+     * @return mixed
      */
-    public function run();
+    public function load(array $params);
 
+    /**
+     * @param bool $validate
+     * @return mixed|bool
+     */
+    public function run($validate = true);
+
+    /**
+     * @return bool
+     */
+    public function validate(): bool;
 }

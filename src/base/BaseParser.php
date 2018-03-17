@@ -29,16 +29,17 @@ class BaseParser implements ParserInterface
     protected $providers = [];
 
     /**
-     * Parser constructor.
-     * @param array $options
+     * BaseParser constructor.
+     * @param BaseParserOptions|null $options
      */
-    public function __construct($options = [])
+    public function __construct(BaseParserOptions $options = null)
     {
         $this->init($options);
     }
 
     public function init($options)
     {
+        $this->options = $options;
         new ParserSetup($this, $this->options);
     }
 

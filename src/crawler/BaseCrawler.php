@@ -3,19 +3,29 @@
 namespace omny\parser\crawler;
 
 
+use omny\parser\base\Component;
+use omny\parser\entities\Article;
+use omny\parser\entities\Category;
 use omny\parser\library\AdvancedHtmlDom;
-use omny\parser\Article;
-use omny\parser\Category;
-use omny\parser\Worker;
 
 /**
  * Class BaseCrawler
  * @package omny\parser\crawler
+ *
+ * @property BaseCrawlerOptions $options
  */
-class BaseCrawler extends Worker
+class BaseCrawler extends Component
 {
-    /** @var  BaseCrawlerOptions */
-    public $options;
+    /** @var AdvancedHtmlDom */
+    private $html;
+
+    /**
+     * @param $page
+     */
+    public function loadHtml($page)
+    {
+        $this->html = $this->createAdvancedHtmlDomFromHtml($page);
+    }
 
     /**
      * @param $html
@@ -53,115 +63,126 @@ class BaseCrawler extends Worker
     /**
      * @param $html
      * @return array
+     * @throws \Exception
      */
     public function getCategoryList($html)
     {
-        return $this->getNodeList($html, $this->options->categoryLinkClass, Category::getClassName());
+        return $this->getNodeList($html, $this->options->categoryLinkClass, Category::class);
     }
 
     /**
-     * @param $html
      * @return array
+     * @throws \Exception
      */
-    public function getArticleList($html)
+    public function getArticleList()
     {
-        return $this->getNodeList($html, $this->options->entityLinkClass, Article::getClassName());
+        return $this->getNodeList($this->html, $this->options->entityLinkClass, Article::class);
     }
 
     /**
-     * @param $html
+     * @return null|string
+     */
+    public function getNextPage()
+    {
+        if (!empty($this->options->paginationNextClass)) {
+            $link = $this->html->find($this->options->paginationNextClass, 0);
+
+            return empty($link) ? null : $link->href;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param $page string
      * @return array|bool
      */
-    public function getDataFromHtml($html)
+    public function getDataFromHtml($page)
     {
-        $htmlObject = $this->createAdvancedHtmlDomFromHtml($html);
+        /** @var AdvancedHtmlDom $htmlObject */
+        $htmlObject = $this->createAdvancedHtmlDomFromHtml($page);
+        /** @var AdvancedHtmlDom $content */
         $content = $htmlObject->find($this->options->contentContainer, 0);
 
         if (empty($content)) {
             return false;
         }
 
-        $data = [
+        return [
             'body' => $this->getContentBody($content),
             'short' => $this->getContentShort($content),
             'preview' => $this->getContentImage($content),
             'date' => $this->getContentDate($htmlObject),
         ];
-
-        return $data;
     }
 
     /**
-     * @param $html
+     * @param $page string
      * @return AdvancedHtmlDom
      */
-    protected function createAdvancedHtmlDomFromHtml($html)
+    protected function createAdvancedHtmlDomFromHtml($page)
     {
-        $simpleHtml = new AdvancedHtmlDom();
-        $simpleHtml->load($html);
+        $html = new AdvancedHtmlDom();
+        $html->load($page);
 
-        return $simpleHtml;
+        return $html;
     }
 
     /**
-     * @param $content
-     * @return null|AdvancedHtmlDom
+     * @param $html AdvancedHtmlDom
+     * @return null|string
      */
-    protected function getContentImage($content)
+    protected function getContentImage($html)
     {
         if (!is_null($this->options->contentPreviewClass)) {
-            $contentImage = $content->find($this->options->contentPreviewClass, 0);
-            if (!is_null($contentImage)) {
-                return $contentImage->src;
-            }
+            $contentImage = $html->find($this->options->contentPreviewClass, 0);
+
+            return is_null($contentImage) ? null : $contentImage->src;
         }
 
         return null;
     }
 
     /**
-     * @param $content
-     * @return null
+     * @param $html AdvancedHtmlDom
+     * @return null|string
      */
-    private function getContentBody($content)
+    private function getContentBody($html)
     {
         if (!is_null($this->options->contentBodyClass)) {
-            $contentBody = $content->find($this->options->contentBodyClass);
-            if (!is_null($contentBody)) {
-                return $contentBody->html;
-            }
+            $contentBody = $html->find($this->options->contentBodyClass);
+
+            return is_null($contentBody) ? null : $contentBody->html;
         }
 
         return null;
     }
 
     /**
-     * @param $content
-     * @return null
+     * @param $html AdvancedHtmlDom
+     * @return null|string
      */
-    private function getContentShort($content)
+    private function getContentShort($html)
     {
         if (!is_null($this->options->contentShortClass)) {
-            $contentDescription = $content->find($this->options->contentShortClass, 0);
-            if (!is_null($contentDescription)) {
-                return $contentDescription->html;
-            }
+            $contentDescription = $html->find($this->options->contentShortClass, 0);
+
+            return is_null($contentDescription) ? null : $contentDescription->html;
         }
 
         return null;
     }
 
     /**
-     * @param $htmlObject
-     * @return false|int|null
+     * @param $html AdvancedHtmlDom
+     * @return null|string
      */
-    private function getContentDate($htmlObject)
+    private function getContentDate($html)
     {
         if (!empty($this->options->contentDateClass)) {
-            $date = $htmlObject->find($this->options->contentDateClass, 0)->innertext;
-            if (!is_null($date)) {
-                return strtotime($date);
-            }
+            $date = $html->find($this->options->contentDateClass, 0)->innertext;
+
+            return is_null($date) ? null : strtotime($date);
         }
 
         return null;

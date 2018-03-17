@@ -3,9 +3,7 @@
 namespace omny\parser\handlers;
 
 
-use omny\parser\Article;
-use omny\parser\cleaner\BaseCleaner;
-use omny\parser\crawler\BaseCrawler;
+use omny\parser\entities\Article;
 use omny\parser\loader\BaseLoader;
 use omny\parser\providers\BaseArticleProvider;
 
@@ -17,76 +15,37 @@ class ArticleHandler implements HandlerInterface
 {
     /** @var Article */
     private $article;
-    /** @var integer */
-    private $category_id;
+
     /** @var BaseArticleProvider $articleProvider */
     private $articleProvider;
     /** @var BaseLoader */
-    private $loader;
-    /** @var BaseCrawler */
-    private $crawler;
-    /** @var BaseCleaner */
-    private $cleaner;
 
-    /**
-     * ArticleHandler constructor.
-     * @param $options
-     */
-    public function __construct($options)
+    public function load(array $params)
     {
-        $this->article = $options['article'];
-        $this->article->parser_hash = $options['article_hash'];
-        $this->articleProvider = $options['articleProvider'];
-        $this->loader = $options['loader'];
-        $this->crawler = $options['crawler'];
-        $this->cleaner = $options['cleaner'];
-        $this->category_id = $options['category_id'];
+        $this->article = $params['article'];
+        $this->articleProvider = $params['articleProvider'];
+    }
+
+    public function validate(): bool
+    {
+        return true;
     }
 
     /**
-     * @return bool|mixed
+     * @param bool $validate
+     * @return bool
      */
-    public function run()
+    public function run($validate = true): bool
     {
+        if ($validate && !$this->validate()) {
+            return false;
+        };
+
         if (!empty($this->articleProvider->get($this->article->parser_hash))) {
             return false;
         }
 
-        $this->extendArticleData();
-
-        // чистит свойства статьи
-        $this->cleanArticleContent();
-
-        // сохраняем в базу
         return $this->saveArticle();
-    }
-
-    /**
-     *
-     */
-    protected function extendArticleData()
-    {
-        $articleHtml = $this->loader->getContent($this->article->url);
-        $articleData = $this->crawler->getDataFromHtml($articleHtml);
-
-        // дополняем объект данными
-        $this->article->load($articleData);
-        $this->article->category_id = $this->category_id;
-    }
-
-    /**
-     * @param $article Article
-     */
-    private function cleanArticleContent()
-    {
-        if (!empty($this->article->body)) {
-            $this->article->body = $this->cleaner
-                ->clean($this->article->body);
-        }
-        if (!empty($this->article->short)) {
-            $this->article->short = $this->cleaner
-                ->clean($this->article->short);
-        }
     }
 
     /**
@@ -94,8 +53,7 @@ class ArticleHandler implements HandlerInterface
      */
     protected function saveArticle()
     {
-        $this->articleProvider
-            ->load($this->article);
+        $this->articleProvider->load($this->article->attributes());
 
         return $this->articleProvider->save();
     }

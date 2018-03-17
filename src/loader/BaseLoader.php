@@ -4,13 +4,13 @@ namespace omny\parser\loader;
 
 
 use omny\curl\Curl;
-use omny\parser\Worker;
+use omny\parser\base\Component;
 
 /**
  * Class BaseLoader
  * @package omny\parser\loader
  */
-class BaseLoader extends Worker
+class BaseLoader extends Component
 {
     /** @var BaseLoaderOptions */
     protected $options;
@@ -35,14 +35,6 @@ class BaseLoader extends Worker
         $this->curl = $this->setCurl($this->options->curlOptions);
         $this->cache = $this->setCache($this->options->cacheOptions);
         $this->proxy = $this->setProxy($this->options->proxyOptions);
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function getNextPage()
-    {
-        throw new \Exception('No method code. ' . __METHOD__);
     }
 
     /**
@@ -117,10 +109,10 @@ class BaseLoader extends Worker
      * @return null
      * @throws \Exception
      */
-    protected function setProxy()
+    protected function setProxy($options)
     {
         if ($this->options->proxyEnabled) {
-            throw new \Exception('Plz, set up proxy in ' . __METHOD__);
+            throw new \Exception('Plz, set up proxy in.');
         }
 
         return null;

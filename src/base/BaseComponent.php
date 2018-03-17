@@ -3,35 +3,47 @@
 namespace omny\parser\base;
 
 
+/**
+ * Class BaseComponent
+ * @package omny\parser\base
+ */
 class BaseComponent
 {
+    /**
+     * BaseComponent constructor.
+     * @param array $params
+     */
     public function __construct($params = [])
     {
         $this->init($params);
     }
 
+    /**
+     * @param $params
+     */
     public function init($params)
     {
 
     }
 
-    public static function getClassName()
-    {
-        return get_called_class();
-    }
-
-    public function setAttributes($params)
+    /**
+     * @param array $params
+     */
+    public function setAttributes(array $params)
     {
         $attributes = $this->attributes();
 
         foreach ($params as $key => $value) {
-            if(in_array($key, $attributes)) {
+            if (in_array($key, $attributes)) {
                 $this->$key = $value;
             }
         }
     }
 
-    public function attributes()
+    /**
+     * @return array
+     */
+    public function attributes(): array
     {
         $class = new \ReflectionClass($this);
         $names = [];
@@ -43,4 +55,5 @@ class BaseComponent
 
         return $names;
     }
+
 }

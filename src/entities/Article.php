@@ -1,6 +1,6 @@
 <?php
 
-namespace omny\parser;
+namespace omny\parser\entities;
 
 
 use omny\parser\base\BaseEntity;
