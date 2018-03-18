@@ -97,6 +97,7 @@ class Parser extends BaseParser
             $handler->load([
                 'article' => $this->getArticleDataFromHtml($article),
                 'articleProvider' => $this->getProvider('article'),
+                'reSave' => $this->getComponent('saver')->reSave,
             ]);
             echo sprintf("\nParse article: %s. \nFrom url %s. \n", $article->title, $article->url);
             if ($handler->run()) {
@@ -122,6 +123,7 @@ class Parser extends BaseParser
         $data = $crawler->getDataFromHtml($articleHtml);
 
         $article->load($data);
+
         $article->parser_hash = $this->createArticleHash($article->url);
         $article->category_id = $this->getArticleCategoryId();
         echo sprintf("Article hash %s. \n", $article->parser_hash);

@@ -63,10 +63,6 @@ class SaveHandler extends Object implements HandlerInterface
             return false;
         }
 
-        if (!is_null($this->name) && !is_string($this->name)) {
-            return false;
-        }
-
         return true;
     }
 
@@ -92,12 +88,12 @@ class SaveHandler extends Object implements HandlerInterface
 
         if ($this->reSave || $this->fileNotExist($destinationFile)) {
             if ($this->downloadFile($url, $destinationFile)) {
-                echo sprintf("File %s downloaded successfully.", $destinationFile);
+                echo sprintf("File %s downloaded successfully.\n", $destinationFile);
                 return $destinationHttpFile;
             }
         }
 
-        return false;
+        return $destinationHttpFile;
     }
 
     private function fileNotExist($file)

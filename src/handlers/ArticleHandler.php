@@ -17,6 +17,8 @@ class ArticleHandler extends Object implements HandlerInterface
     /** @var Article */
     private $article;
 
+    public $reSave = true;
+
     /** @var ArticleProvider $articleProvider */
     private $articleProvider;
     /** @var BaseLoader */
@@ -41,12 +43,14 @@ class ArticleHandler extends Object implements HandlerInterface
         if ($validate && !$this->validate()) {
             return false;
         };
+        $this->articleProvider->init();
+        $existingModel = $this->articleProvider->get($this->article->parser_hash);
 
-        if (!empty($this->articleProvider->get($this->article->parser_hash))) {
-            return false;
+        if (empty($existingModel) || $this->reSave) {
+            return $this->saveArticle();
         }
 
-        return $this->saveArticle();
+        return false;
     }
 
     /**

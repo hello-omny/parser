@@ -114,7 +114,6 @@ class Crawler extends Component
      */
     public function getDataFromHtml()
     {
-
         /** @var AdvancedHtmlDom $content */
         $content = $this->getElementByClass($this->content['container'], 0);
 
@@ -211,13 +210,12 @@ class Crawler extends Component
      */
     protected function getContentShort($html)
     {
-        if (!is_null($this->content['short'])) {
-            $contentDescription = $html->find($this->content['short'], 0);
-
-            return is_null($contentDescription) ? null : $contentDescription->html;
+        if (empty($this->content['short'])) {
+            return null;
         }
+        $contentDescription = $this->getElementByClass($this->content['short'], 0);
 
-        return null;
+        return empty($contentDescription) ? null : $contentDescription->html;
     }
 
     /**
