@@ -1,49 +1,57 @@
 <?php
 
-namespace omny\parser\loader;
+namespace omny\parser\components;
 
 
 use omny\curl\Curl;
 use omny\parser\base\Component;
+use omny\parser\library\Cache;
 
 /**
  * Class BaseLoader
  * @package omny\parser\loader
  */
-class BaseLoader extends Component
+class Loader extends Component
 {
-    /** @var BaseLoaderOptions */
-    protected $options;
+    public $proxyEnabled = false;
+    public $cacheEnabled = true;
+    public $sleepLimit = 5;
+
+    public $cacheOptions = [
+        'alias' => '/runtime/parser/cache'
+    ];
+    public $curlOptions = [];
+    public $proxyOptions = [];
 
     /** @var Curl */
-    private $curl;
+    private $curl = null;
     /**
      * @var null
      */
     private $proxy = null;
     /** @var Cache */
-    private $cache;
+    private $cache = null;
 
     /**
      * @param $params
      * @throws \Exception
      */
-    public function init($params)
+    public function init()
     {
-        parent::init($params);
+        parent::init();
 
-        $this->curl = $this->setCurl($this->options->curlOptions);
-        $this->cache = $this->setCache($this->options->cacheOptions);
-        $this->proxy = $this->setProxy($this->options->proxyOptions);
+        $this->curl = $this->setCurl($this->curlOptions);
+        $this->cache = $this->setCache($this->cacheOptions);
+        $this->proxy = $this->setProxy($this->proxyOptions);
     }
 
     /**
      * @param $url
      * @return bool|mixed|string
      */
-    public function getContent($url)
+    public function getContent(string $url)
     {
-        if (($result = $this->cache->getFile($url)) != false) {
+        if (($result = $this->cache->get($url)) != false) {
             return $result;
         }
 
@@ -53,13 +61,13 @@ class BaseLoader extends Component
 
         try {
             $result = $this->curl->get($url);
-            $this->cache->setFile($url, $result);
+            $this->cache->save($url, $result);
         } catch (\Exception $error) {
             var_dump($error->getTraceAsString());
             $result = '';
         }
 
-        sleep($this->options->sleepLimit);
+        sleep($this->sleepLimit);
 
         return $result;
     }
@@ -69,7 +77,7 @@ class BaseLoader extends Component
      * @param $baseUrl
      * @return string
      */
-    public function normalizeUrl($url, $baseUrl)
+    public function normalizeUrl(string $url, string $baseUrl): string
     {
         if(preg_match('/((http)|(www))(.+)/', $url)) {
             return $url;
@@ -83,7 +91,7 @@ class BaseLoader extends Component
      * @return Curl
      * @throws \Exception
      */
-    protected function setCurl($options)
+    protected function setCurl(array $options): Curl
     {
         $curl = new Curl($options);
         $curl->init();
@@ -96,9 +104,9 @@ class BaseLoader extends Component
      * @param $options
      * @return null|Cache
      */
-    protected function setCache($options)
+    protected function setCache(array $options)
     {
-        if ($this->options->cacheEnabled) {
+        if ($this->cacheEnabled) {
             return new Cache($options);
         }
 
@@ -109,9 +117,9 @@ class BaseLoader extends Component
      * @return null
      * @throws \Exception
      */
-    protected function setProxy($options)
+    protected function setProxy(array $options)
     {
-        if ($this->options->proxyEnabled) {
+        if ($this->proxyEnabled) {
             throw new \Exception('Plz, set up proxy in.');
         }
 

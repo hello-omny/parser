@@ -2,15 +2,12 @@
 
 namespace omny\parser;
 
+
 /**
  * Interface ParserInterface
- * @package omny\parser\base
+ * @package omny\parser
  */
 interface ParserInterface
 {
-    /**
-     * @param null|string $url
-     */
-    public function run($url = null);
-
+    public function run();
 }

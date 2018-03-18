@@ -2,13 +2,13 @@
 
 namespace omny\parser;
 
-use omny\parser\base\BaseEntity;
 use omny\parser\base\BaseParser;
-use omny\parser\crawler\BaseCrawler;
+use omny\parser\base\Entity;
+use omny\parser\components\Loader;
+use omny\parser\components\Saver;
+use omny\parser\components\Crawler;
 use omny\parser\entities\Article;
 use omny\parser\handlers\ArticleHandler;
-use omny\parser\loader\BaseLoader;
-use omny\parser\saver\BaseSaver;
 
 /**
  * Class Parser
@@ -16,29 +16,40 @@ use omny\parser\saver\BaseSaver;
  */
 class Parser extends BaseParser
 {
+    const BASE_CONFIG = __DIR__ . '/config.php';
+
+    public function init()
+    {
+        parent::init();
+        $config = include __DIR__ . '/config.php';
+        new Setup($this, $config);
+    }
+
     /**
      * @param null $url
      * @throws \Exception
      */
-    public function run($url = null)
+    public function run()
     {
         if (empty($url)) {
-            $url = $this->options->startUrl;
+            $url = $this->startUrl;
         }
         $pageCounter = 1;
-        /** @var BaseLoader $loader */
+        /** @var Loader $loader */
         $loader = $this->getComponent('loader');
-        /** @var BaseCrawler $crawler */
+        /** @var Crawler $crawler */
         $crawler = $this->getComponent('crawler');
 
         while (!empty($url)) {
+            echo sprintf("Parse url: %s. \n", $url);
             $page = $loader->getContent($url);
-            $crawler->loadHtml($page);
+            $crawler->setHtml($page);
             $this->handlePageOfArticles();
 
             $url = null;
             if ($this->canParseNextPage($pageCounter)) {
                 $url = $crawler->getNextPage();
+                echo sprintf("Current page: %d. Next url: %s \n", $pageCounter, $url);
                 $pageCounter++;
             }
         }
@@ -51,7 +62,7 @@ class Parser extends BaseParser
     public function getCategoryList($url = null)
     {
         if (empty($url)) {
-            $url = $this->options->startUrl;
+            $url = $this->startUrl;
         }
         $page = $this->getComponent('loader')->getContent($url);
 
@@ -67,7 +78,7 @@ class Parser extends BaseParser
      */
     public function handlePageOfArticles()
     {
-        /** @var BaseCrawler $crawler */
+        /** @var Crawler $crawler */
         $crawler = $this->getComponent('crawler');
 
         $articleList = $crawler->getArticleList();
@@ -83,6 +94,7 @@ class Parser extends BaseParser
                 'article' => $this->getArticleDataFromHtml($article),
                 'articleProvider' => $this->getProvider('article'),
             ]);
+            echo sprintf("\nParse article: %s. \nFrom url %s. \n", $article->title, $article->url);
             if ($handler->run()) {
                 $savedArticles[] = $article;
             };
@@ -98,24 +110,30 @@ class Parser extends BaseParser
      */
     private function getArticleDataFromHtml(Article $article)
     {
-        /** @var BaseSaver $saver */
-        $saver = $this->getComponent('saver');
-
-        $articleHtml = $this->getComponent('loader')->getContent($article->url);
-        $data = $this->getComponent('crawler')->getDataFromHtml($articleHtml);
+        $articleHtml = $this->getComponent('loader')
+            ->getContent($article->url);
+        /** @var Crawler $crawler */
+        $crawler = $this->getComponent('crawler');
+        $crawler->setHtml($articleHtml);
+        $data = $crawler->getDataFromHtml($articleHtml);
 
         $article->load($data);
         $article->parser_hash = $this->createArticleHash($article->url);
         $article->category_id = $this->getArticleCategoryId();
+        echo sprintf("Article hash %s. \n", $article->parser_hash);
+        echo sprintf("Article category id %s.\n", $article->category_id);
 
         if (!empty($article->preview)) {
-            $article->preview = $saver->savePreview($article->preview);
+            $article->preview = $this->getComponent('saver')->savePreview($article->preview);
+            echo sprintf("Article preview %s.\n", $article->preview);
         }
         if (!empty($article->body)) {
             $article->body = $this->getComponent('cleaner')->clean($article->body);
+            echo sprintf("Article body %s. \n", empty($article->body) ? 'empty' : 'exist');
         }
         if (!empty($article->short)) {
             $article->short = $this->getComponent('cleaner')->clean($article->short);
+            echo sprintf("Article short %s.\n", empty($article->short) ? 'empty' : 'exist');
         }
 
         $article = $this->loadExtendedDataToArticle($article);
@@ -123,7 +141,7 @@ class Parser extends BaseParser
         return $article;
     }
 
-    protected function loadExtendedDataToArticle($article)
+    protected function loadExtendedDataToArticle(Article $article)
     {
         return $article;
     }
@@ -134,7 +152,7 @@ class Parser extends BaseParser
      */
     protected function formatNodeUrls(array $list)
     {
-        /** @var BaseEntity $node */
+        /** @var Entity $node */
         foreach ($list as $node) {
             $node->url = Helper::normalizeUrl($node->url, $this->baseUrl);
         }
@@ -148,7 +166,7 @@ class Parser extends BaseParser
      */
     protected function canParseNextPage(int $counter)
     {
-        return $counter < $this->options->pagesToParse;
+        return $counter < $this->pagesToParse;
     }
 
     /**
@@ -166,7 +184,7 @@ class Parser extends BaseParser
      */
     protected function createArticleHash(string $url)
     {
-        $source = md5($url) . "_" . $this->parserName;
+        $source = md5($url) . "_" . $this->id;
 
         return $source;
     }
@@ -182,4 +200,11 @@ class Parser extends BaseParser
         return 0;
     }
 
+    /**
+     * @return array
+     */
+    public function getDefaultConfig(): array
+    {
+        return require self::BASE_CONFIG;
+    }
 }

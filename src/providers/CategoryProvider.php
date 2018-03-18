@@ -3,9 +3,9 @@
 namespace omny\parser\providers;
 
 
-use omny\parser\base\BaseComponent;
+use omny\parser\base\Object;
 
-class BaseCategoryProvider extends BaseComponent implements ProviderInterface
+class CategoryProvider extends Object implements ProviderInterface
 {
     public function get($options)
     {

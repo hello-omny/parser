@@ -1,44 +1,38 @@
 <?php
 
-namespace omny\parser\loader;
+namespace omny\parser\library;
 
 
-use omny\parser\base\BaseComponent;
+use omny\parser\base\Object;
 
 /**
  * Class Cache
  * @package omny\parser\cache
  */
-class Cache extends BaseComponent
+class Cache extends Object
 {
-    /**
-     * @var
-     */
+    /** @var */
     public $dir;
-    /**
-     * @var string
-     */
+    /** @var string */
     public $alias = '/runtime/parser/cache';
 
     /**
      * @param $params
      * @throws \Exception
      */
-    public function init($params)
+    public function init()
     {
-        $this->setAttributes($params);
-        $this->setDirAlias();
-
-        parent::init($params);
+        parent::init();
+        $this->setFolder();
     }
 
     /**
      * @throws \Exception
      */
-    private function setDirAlias()
+    private function setFolder()
     {
         if (!file_exists($this->alias)) {
-            throw new \Exception('Folder dose not exist. Plz, create it.');
+            throw new \Exception(sprintf('Cache folder "%s" dose not exist.', $this->alias));
         }
         $this->dir = $this->alias;
     }
@@ -47,7 +41,7 @@ class Cache extends BaseComponent
      * @param $url
      * @return bool|mixed
      */
-    public function getFile($url)
+    public function get(string $url)
     {
         $file = $this->dir . '/f_' . md5($url);
         if (file_exists($file)) {
@@ -63,13 +57,14 @@ class Cache extends BaseComponent
      * @return bool
      * @throws \Exception
      */
-    public function setFile($url, $content)
+    public function save(string $url, string $content): bool
     {
         $file = $this->dir . '/f_' . md5($url);
         if (file_put_contents($file, serialize($content))){
             return true;
         };
 
-        throw new \Exception("Can't save cache file. " . __METHOD__ );
+        throw new \Exception(sprintf('Can\'t save cache file "%s". ', $file) );
     }
+
 }

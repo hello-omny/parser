@@ -3,9 +3,9 @@
 namespace omny\parser\entities;
 
 
-use omny\parser\base\BaseEntity;
+use omny\parser\base\Entity;
 
-class Category extends BaseEntity
+class Category extends Entity
 {
     public $title;
     public $url;

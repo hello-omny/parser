@@ -3,27 +3,14 @@
 namespace omny\parser\base;
 
 
-/**
- * Class BaseComponent
- * @package omny\parser\base
- */
-class BaseComponent
+class Entity extends Object
 {
-    /**
-     * BaseComponent constructor.
-     * @param array $params
-     */
-    public function __construct($params = [])
-    {
-        $this->init($params);
-    }
+    public $url;
+    public $title;
 
-    /**
-     * @param $params
-     */
-    public function init($params)
+    public function load($params)
     {
-
+        $this->setAttributes($params);
     }
 
     /**

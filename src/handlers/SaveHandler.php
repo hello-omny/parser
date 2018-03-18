@@ -4,18 +4,20 @@ namespace omny\parser\handlers;
 
 
 use omny\curl\Curl;
-use Symfony\Component\Filesystem\Filesystem;
+use omny\parser\base\Object;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
+use Symfony\Component\Filesystem\Filesystem;
 
-class SaveHandler implements HandlerInterface
+class SaveHandler extends Object implements HandlerInterface
 {
     public $url = null;
     public $storage = 'media';
     public $name = null;
+    public $reSave = true;
 
-    protected $baseUploadDir = '/www/site.local/web/upload';
-    protected $baseHttpPath = '/upload';
-    protected $curlTimeout = 300;
+    public $baseUploadDir = '/www/site.local/web/upload';
+    public $baseHttpPath = '/upload';
+    public $curlTimeout = 300;
 
     /**
      * @param array $params
@@ -26,11 +28,10 @@ class SaveHandler implements HandlerInterface
         $class = new \ReflectionClass($this);
 
         foreach ($params as $name => $value) {
-            if ($class->hasProperty($name)) {
-                $property = $class->getProperty($name);
-                if ($property->isPublic() && !$property->isStatic()) {
-                    $this->$property = $value;
-                }
+            $property = $class->getProperty($name);
+
+            if (!empty($property) && $property->isPublic() && !$property->isStatic()) {
+                $this->$name = $value;
             }
         }
     }
@@ -89,11 +90,18 @@ class SaveHandler implements HandlerInterface
         $destinationFile = $absolutePath . DIRECTORY_SEPARATOR . $generatedFileName;
         $destinationHttpFile = $httpPath . DIRECTORY_SEPARATOR . $generatedFileName;
 
-        if ($this->downloadFile($url, $destinationFile)) {
-            return $destinationHttpFile;
+        if ($this->reSave || $this->fileNotExist($destinationFile)) {
+            if ($this->downloadFile($url, $destinationFile)) {
+                return $destinationHttpFile;
+            }
         }
 
         return false;
+    }
+
+    private function fileNotExist($file)
+    {
+        return !file_exists($file);
     }
 
     /**
@@ -145,9 +153,11 @@ class SaveHandler implements HandlerInterface
         try {
             sleep(10);
 
-            $curl = new Curl(['auto_flush' => false]);
+            $curl = new Curl();
+            $curl->init();
             $destinationFile = @fopen($pathToFile, "w");
             $curl->setOption(CURLOPT_FILE, $destinationFile);
+            $curl->auto_flush = false;
             $this->setUpCurl($curl);
 
             $curl->get($url);

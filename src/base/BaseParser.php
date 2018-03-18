@@ -5,55 +5,66 @@ namespace omny\parser\base;
 
 use omny\parser\handlers\HandlerInterface;
 use omny\parser\ParserInterface;
-use omny\parser\ParserSetup;
 use omny\parser\providers\ProviderInterface;
 
 /**
  * Class BaseParser
- * @package omny\parser\handlers
+ * @package omny\parser\base
  */
-class BaseParser implements ParserInterface
+class BaseParser extends Object implements ParserInterface
 {
-    /** @var BaseParserOptions */
-    public $options;
+    /** @var */
+    public $id;
+
     /** @var string */
     public $baseUrl;
+    /** @var string */
+    public $startUrl;
+    /** @var integer */
+    public $categoryId;
+    /** @var int */
+    public $pagesToParse = 3;
 
-    /** @var */
-    public $parserName;
-    /** @var array */
-    protected $handlers = [];
     /** @var Component[] */
-    protected $components = [];
+    private $components = [];
+
+    /** @var array */
+    private $handlers = [];
+
     /** @var ProviderInterface[] */
-    protected $providers = [];
+    private $providers = [];
+
+    /** @var array */
+    private $entities = [];
 
     /**
      * BaseParser constructor.
-     * @param BaseParserOptions|null $options
+     * @param array $options
      */
-    public function __construct(BaseParserOptions $options = null)
+    public function __construct($options = [])
     {
-        $this->init($options);
-    }
-
-    public function init($options)
-    {
-        $this->options = $options;
-        new ParserSetup($this, $this->options);
+        $this->init();
     }
 
     /**
-     * @param null|string $url
+     *
      */
-    public function run($url = null)
+    public function init()
+    {
+
+    }
+
+    /**
+     *
+     */
+    public function run()
     {
 
     }
 
     /**
      * @param string $name
-     * @return string
+     * @return HandlerInterface
      */
     public function getHandler(string $name): HandlerInterface
     {
@@ -103,6 +114,24 @@ class BaseParser implements ParserInterface
     public function getProvider(string $name): ProviderInterface
     {
         return $this->providers[$name];
+    }
+
+    /**
+     * @param string $name
+     * @param Entity $object
+     */
+    public function setEntity(string $name, Entity $object)
+    {
+        $this->entities[$name] = $object;
+    }
+
+    /**
+     * @param string $name
+     * @return Entity
+     */
+    public function getEntity(string $name): Entity
+    {
+        return isset($this->entities[$name]) ? $this->entities[$name]: null;
     }
 
 }

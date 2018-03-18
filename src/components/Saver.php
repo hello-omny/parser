@@ -1,21 +1,35 @@
 <?php
 
-namespace omny\parser\saver;
+namespace omny\parser\components;
 
 
+use omny\parser\base\Component;
 use omny\parser\entities\Article;
 use omny\parser\handlers\SaveHandler;
-use omny\parser\base\Component;
 
-class BaseSaver extends Component
+class Saver extends Component
 {
+    /** @var bool  */
+    public $reSave = true;
+    /** @var array  */
+    public $handlers = [
+        'save' => [
+            'className' => SaveHandler::class,
+            'config' => [
+                'baseUploadDir' => '/www/site.local/web/upload',
+                'baseHttpPath' => '/upload',
+                'curlTimeout' => 300
+            ]
+        ]
+    ];
+
     /**
      * @param $article Article
      * @throws \Exception
      */
     public function save(Article $article)
     {
-        throw new \Exception('No code in ' . __METHOD__);
+        throw new \Exception('Plz, add some code for this method.');
     }
 
     /**
@@ -41,4 +55,5 @@ class BaseSaver extends Component
 
         return $file;
     }
+
 }

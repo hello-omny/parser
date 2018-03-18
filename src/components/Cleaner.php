@@ -1,6 +1,6 @@
 <?php
 
-namespace omny\parser\cleaner;
+namespace omny\parser\components;
 
 
 use omny\parser\base\Component;
@@ -9,7 +9,7 @@ use omny\parser\base\Component;
  * Class BaseCleaner
  * @package omny\parser\cleaner
  */
-class BaseCleaner extends Component
+class Cleaner extends Component
 {
     /**
      * @param $html

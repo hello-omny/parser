@@ -5,18 +5,19 @@ namespace omny\parser\handlers;
 
 use omny\parser\entities\Article;
 use omny\parser\loader\BaseLoader;
-use omny\parser\providers\BaseArticleProvider;
+use omny\parser\providers\ArticleProvider;
+use omny\parser\base\Object;
 
 /**
  * Class ArticleHandler
  * @package omny\parser\handlers
  */
-class ArticleHandler implements HandlerInterface
+class ArticleHandler extends Object implements HandlerInterface
 {
     /** @var Article */
     private $article;
 
-    /** @var BaseArticleProvider $articleProvider */
+    /** @var ArticleProvider $articleProvider */
     private $articleProvider;
     /** @var BaseLoader */
 

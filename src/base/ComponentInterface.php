@@ -15,14 +15,14 @@ interface ComponentInterface
      * @param string $name
      * @param string $className
      * @param array $options
-     * @return void
+     * @return bool
      */
-    public function setHandler(string $name, string $className, array $options);
+    public function setHandler(string $name, string $className, array $options): bool;
 
     /**
      * @param string $name
-     * @return HandlerInterface
+     * @return null|HandlerInterface
      */
-    public function getHandler(string $name): HandlerInterface;
+    public function getHandler(string $name);
 
 }

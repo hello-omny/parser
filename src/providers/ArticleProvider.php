@@ -3,9 +3,9 @@
 namespace omny\parser\providers;
 
 
-use omny\parser\base\BaseComponent;
+use omny\parser\base\Object;
 
-class BaseArticleProvider extends BaseComponent implements ProviderInterface
+class ArticleProvider extends Object implements ProviderInterface
 {
     protected $model;
 

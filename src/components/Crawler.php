@@ -1,6 +1,6 @@
 <?php
 
-namespace omny\parser\crawler;
+namespace omny\parser\components;
 
 
 use omny\parser\base\Component;
@@ -14,17 +14,51 @@ use omny\parser\library\AdvancedHtmlDom;
  *
  * @property BaseCrawlerOptions $options
  */
-class BaseCrawler extends Component
+class Crawler extends Component
 {
+    /** @var array */
+    public $category = [
+        'container' => null,
+        'link' => null,
+    ];
+    /** @var array */
+    public $entity = [
+        'container' => null, // Класс контейнера статьи на странице категории или в выдаче
+        'link' => null, // Класс ссылки на страницу статьи
+    ];
+    /** @var array */
+    public $pagination = [
+        'container' => null,
+        'next' => null, // Класс со ссылкой на следующую страницу
+    ];
+
+    /** @var array */
+    public $content = [
+        'container' => null,
+        'title' => null,
+        'short' => null, // Класс содержащий в себе описание статьи
+        'body' => null, // Класс содержащий в себе текст статьи
+        'preview' => null, // Класс картинки
+        'tags' => null,
+        'tagElement' => null,
+        'author' => null,
+        'date' => null, // Класс даты статьи
+    ];
+
     /** @var AdvancedHtmlDom */
-    private $html;
+    private $html = null;
 
     /**
      * @param $page
      */
-    public function loadHtml($page)
+    public function setHtml($page)
     {
         $this->html = $this->createAdvancedHtmlDomFromHtml($page);
+    }
+
+    public function getHtml()
+    {
+        return $this->html;
     }
 
     public function getElementByClass($className, $index = null)
@@ -39,7 +73,7 @@ class BaseCrawler extends Component
      */
     public function getCategoryList($html)
     {
-        return $this->getNodeList($html, $this->options->categoryLinkClass, Category::class);
+        return $this->getNodeList($html, $this->category['link'], Category::class);
     }
 
     /**
@@ -48,7 +82,7 @@ class BaseCrawler extends Component
      */
     public function getArticleList()
     {
-        return $this->getNodeList($this->html, $this->options->entityLinkClass, Article::class);
+        return $this->getNodeList($this->html, $this->entity['link'], Article::class);
     }
 
     /**
@@ -56,8 +90,17 @@ class BaseCrawler extends Component
      */
     public function getNextPage()
     {
-        if (!empty($this->options->paginationNextClass)) {
-            $link = $this->getElementByClass($this->options->paginationNextClass, 0);
+        $container = null;
+        if (!empty($this->pagination['container'])) {
+            $container = $this->getElementByClass($this->pagination['container'], 0);
+        }
+
+        if (!empty($this->pagination['next'])) {
+            if (!empty($container)) {
+                $link = $container->find($this->pagination['next'], 0);
+            } else {
+                $link = $this->getElementByClass($this->pagination['next'], 0);
+            }
 
             return empty($link) ? null : $link->href;
         }
@@ -69,12 +112,11 @@ class BaseCrawler extends Component
      * @param $page string
      * @return array|bool
      */
-    public function getDataFromHtml($page)
+    public function getDataFromHtml()
     {
-        /** @var AdvancedHtmlDom $htmlObject */
-        $htmlObject = $this->createAdvancedHtmlDomFromHtml($page);
+
         /** @var AdvancedHtmlDom $content */
-        $content = $htmlObject->find($this->options->contentContainer, 0);
+        $content = $this->getElementByClass($this->content['container'], 0);
 
         if (empty($content)) {
             return false;
@@ -84,7 +126,7 @@ class BaseCrawler extends Component
             'body' => $this->getContentBody($content),
             'short' => $this->getContentShort($content),
             'preview' => $this->getContentImage($content),
-            'date' => $this->getContentDate($htmlObject),
+            'date' => $this->getContentDate(),
         ];
     }
 
@@ -139,8 +181,8 @@ class BaseCrawler extends Component
      */
     protected function getContentImage($html)
     {
-        if (!is_null($this->options->contentPreviewClass)) {
-            $contentImage = $html->find($this->options->contentPreviewClass, 0);
+        if (!is_null($this->content['preview'])) {
+            $contentImage = $html->find($this->content['preview'], 0);
 
             return is_null($contentImage) ? null : $contentImage->src;
         }
@@ -154,8 +196,8 @@ class BaseCrawler extends Component
      */
     protected function getContentBody($html)
     {
-        if (!is_null($this->options->contentBodyClass)) {
-            $contentBody = $html->find($this->options->contentBodyClass);
+        if (!is_null($this->content['body'])) {
+            $contentBody = $html->find($this->content['body']);
 
             return is_null($contentBody) ? null : $contentBody->html;
         }
@@ -169,8 +211,8 @@ class BaseCrawler extends Component
      */
     protected function getContentShort($html)
     {
-        if (!is_null($this->options->contentShortClass)) {
-            $contentDescription = $html->find($this->options->contentShortClass, 0);
+        if (!is_null($this->content['short'])) {
+            $contentDescription = $html->find($this->content['short'], 0);
 
             return is_null($contentDescription) ? null : $contentDescription->html;
         }
@@ -182,10 +224,10 @@ class BaseCrawler extends Component
      * @param $html AdvancedHtmlDom
      * @return null|string
      */
-    protected function getContentDate($html)
+    protected function getContentDate()
     {
-        if (!empty($this->options->contentDateClass)) {
-            $date = $html->find($this->options->contentDateClass, 0);
+        if (!empty($this->content['date'])) {
+            $date = $this->getElementByClass($this->content['date'], 0);
 
             return is_null($date) ? null : strtotime($date->innertext);
         }
