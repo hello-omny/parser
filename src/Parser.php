@@ -43,13 +43,14 @@ class Parser extends BaseParser
         while (!empty($url)) {
             echo sprintf("Parse url: %s. \n", $url);
             $page = $loader->getContent($url);
+            $crawler->setHtml($page);
+
             $url = null;
             if ($this->canParseNextPage($pageCounter)) {
                 $url = $crawler->getNextPage();
                 $pageCounter++;
             }
 
-            $crawler->setHtml($page);
             $this->handlePageOfArticles();
 
             if (!empty($url)) {
