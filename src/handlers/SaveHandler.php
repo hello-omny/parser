@@ -92,6 +92,7 @@ class SaveHandler extends Object implements HandlerInterface
 
         if ($this->reSave || $this->fileNotExist($destinationFile)) {
             if ($this->downloadFile($url, $destinationFile)) {
+                echo sprintf("File %s downloaded successfully.", $destinationFile);
                 return $destinationHttpFile;
             }
         }
