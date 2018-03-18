@@ -123,6 +123,8 @@ class Parser extends BaseParser
         echo sprintf("Article hash %s. \n", $article->parser_hash);
         echo sprintf("Article category id %s.\n", $article->category_id);
 
+        $article = static::loadExtendedDataToArticle($article);
+
         if (!empty($article->preview)) {
             $article->preview = $this->getComponent('saver')->savePreview($article->preview);
             echo sprintf("Article preview %s.\n", $article->preview);
@@ -135,8 +137,6 @@ class Parser extends BaseParser
             $article->short = $this->getComponent('cleaner')->clean($article->short);
             echo sprintf("Article short %s.\n", empty($article->short) ? 'empty' : 'exist');
         }
-
-        $article = $this->loadExtendedDataToArticle($article);
 
         return $article;
     }
